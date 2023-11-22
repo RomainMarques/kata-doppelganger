@@ -6,9 +6,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 
 public class MailSenderTest {
     private User user;
@@ -51,5 +55,14 @@ public class MailSenderTest {
         Assertions.assertEquals("SendMailRequest{recipient='email', subject='New notification', body='message'}\n" +
                         "SendMailRequest{recipient='email', subject='New notification', body='message'}",
                 outputStreamCaptor.toString().trim());
+    }
+
+    @Test
+    void should_make_a_valid_http_request_mockito() {
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+    }
+    
+    void should_retry_when_getting_a_503_error_mockito() {
+
     }
 }
