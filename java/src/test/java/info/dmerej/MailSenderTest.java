@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
@@ -60,9 +61,38 @@ public class MailSenderTest {
     @Test
     void should_make_a_valid_http_request_mockito() {
         HttpClient httpClient = Mockito.mock(HttpClient.class);
-    }
-    
-    void should_retry_when_getting_a_503_error_mockito() {
 
+        Mockito.when(httpClient.post(any(), any())).thenReturn(new SendMailResponse(3, "response"));
+        MailSender mailSender = new MailSender(httpClient);
+
+        mailSender.sendV1(user, message);
+
+        ArgumentCaptor<SendMailRequest> mailCaptor = ArgumentCaptor.forClass(SendMailRequest.class);
+
+        Mockito.verify(httpClient, times(1)).post(any(), mailCaptor.capture());
+
+        Assertions.assertEquals("SendMailRequest{recipient='email', subject='New notification', body='message'}",
+                mailCaptor.getAllValues().get(0).toString());
+
+    }
+
+    @Test
+    void should_retry_when_getting_a_503_error_mockito() {
+        SendMailRequest sendMailRequest = new SendMailRequest("email", "New notification", "message");
+
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+
+        Mockito.when(httpClient.post(any(), any())).thenReturn(new SendMailResponse(503, "response"));
+        MailSender mailSender = new MailSender(httpClient);
+
+        mailSender.sendV2(user, message);
+
+        ArgumentCaptor<SendMailRequest> mailCaptor = ArgumentCaptor.forClass(SendMailRequest.class);
+
+        Mockito.verify(httpClient, times(2)).post(any(), mailCaptor.capture());
+
+        Assertions.assertEquals(sendMailRequest, mailCaptor.getAllValues().get(0));
+        Assertions.assertEquals(sendMailRequest, mailCaptor.getAllValues().get(1));
+        
     }
 }
