@@ -2,10 +2,13 @@ package info.dmerej;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import static org.mockito.Mockito.*;
 
 public class DiscountApplierTest {
 
@@ -42,5 +45,31 @@ public class DiscountApplierTest {
     discountApplier.applyV2(10, users);
     Assertions.assertEquals("didier, You've got a new discount of 10%\n" +
             "roger, You've got a new discount of 10%", outputStreamCaptor.toString().trim());
+  }
+
+  @Test
+  void should_notify_twice_when_applying_discount_for_two_users_v1_mockito() {
+    // TODO: rewrite the test using Mockito
+    Notifier notifier = Mockito.mock(Notifier.class);
+    DiscountApplier discountApplier = new DiscountApplier(notifier);
+    discountApplier.applyV1(10, users);
+    Mockito.verify(notifier, times(2)).notify(any(), any());
+
+  }
+
+  @Test
+  void should_notify_twice_when_applying_discount_for_two_users_v2_mockito() {
+    // TODO: rewrite the test using Mockito
+    Notifier notifierMock = mock(Notifier.class);
+    DiscountApplier discountApplier = new DiscountApplier(notifierMock);
+
+    discountApplier.applyV2(10, users);
+
+    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+
+    verify(notifierMock, times(2)).notify(userCaptor.capture(), any());
+
+    Assertions.assertEquals(users.get(0), userCaptor.getAllValues().get(0));
+    Assertions.assertEquals(users.get(1), userCaptor.getAllValues().get(1));
   }
 }
